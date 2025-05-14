@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- The title below will likely be overridden by Blogger's page title -->
+    <title>अनंत हिंदी समाचार | Infinite Hindi News</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style type="text/css">
+        /* Your existing CSS code - No changes needed here, just ensure it's within style tags */
+        :root {
+            --primary-color: #c62828; /* Darker, more sophisticated red */
+            --secondary-color: #ef5350; /* Lighter red for accents */
+            --gradient-start: #e53935;
+            --gradient-end: #b71c1c;
+            --text-color: #212121;
+            --bg-color: #eceff1; /* Off-white, very light grey */
+            --card-bg-color: #ffffff;
+            --card-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            --card-hover-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+            --border-radius: 16px; /* More rounded */
+            --font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+
+        body.dark-mode {
+            --primary-color: #d32f2f;
+            --secondary-color: #f44336;
+            --gradient-start: #b71c1c;
+            --gradient-end: #880e4f; /* Darker purple for gradient end in dark mode */
+            --text-color: #e0e0e0;
+            --bg-color: #1a1a1a; /* Darker background */
+            --card-bg-color: #2c2c2c; /* Darker card */
+            --card-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+            --card-hover-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        /* IMPORTANT: Target a wrapper for Blogger to avoid body style conflicts */
+        #news-app-wrapper {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            /* padding-top: 125px; Remove fixed padding, handle by sticky elements */
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh; /* Ensure wrapper takes height */
+        }
+        #news-app-wrapper.dark-mode {
+             /* These vars will be applied if news-app-wrapper gets dark-mode class */
+            --primary-color: #d32f2f;
+            --secondary-color: #f44336;
+            --gradient-start: #b71c1c;
+            --gradient-end: #880e4f;
+            --text-color: #e0e0e0;
+            --bg-color: #1a1a1a;
+            --card-bg-color: #2c2c2c;
+            --card-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+            --card-hover-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* Styles that were on body, now might need to be on #news-app-wrapper or its children */
+        /* For example, if body had padding-top for fixed header, that logic might need adjustment */
+        /* The provided CSS already mostly targets specific elements, which is good. */
+
+        /* Custom Scrollbar - Might be overridden by browser/OS or Blogger theme */
+        #news-app-wrapper ::-webkit-scrollbar { width: 10px; height: 10px; }
+        #news-app-wrapper ::-webkit-scrollbar-track { background: var(--bg-color); }
+        #news-app-wrapper ::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 5px; }
+        #news-app-wrapper ::-webkit-scrollbar-thumb:hover { background: var(--secondary-color); }
+
+
+        /* News Ticker */
+        #news-ticker-container {
+            position: sticky; /* Changed from fixed to sticky relative to wrapper */
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            padding: 0.3rem 0;
+            z-index: 1001;
+            overflow: hidden;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        #news-ticker {
+            display: inline-block;
+            padding-left: 100%; /* Start off-screen */
+            animation: ticker-scroll 30s linear infinite;
+        }
+        #news-ticker span { margin-right: 50px; }
+        #news-ticker a { color: white; text-decoration: none; }
+        #news-ticker a:hover { text-decoration: underline; }
+
+        @keyframes ticker-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            color: white;
+            padding: 0.8rem 1rem;
+            position: sticky; /* Changed from fixed to sticky */
+            width: 100%;
+            top: 30px; /* This will be 30px from the top of its sticky container (news-ticker-container) */
+            /* Or if ticker is not sticky, then top: 0 and adjust ticker logic */
+            left: 0;
+            z-index: 1000;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 1.6rem; margin: 0; font-weight: 700; }
+
+        .header-controls { display: flex; align-items: center; }
+        #view-toggle-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.5);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+        #view-toggle-btn:hover { background: rgba(255,255,255,0.3); }
+
+        #theme-toggle {
+            background: none; border: none; color: white;
+            font-size: 1.5rem; cursor: pointer; padding: 0.3rem;
+            transition: transform 0.3s;
+        }
+        #theme-toggle:hover { transform: scale(1.1); }
+
+        /* Search Bar */
+        #search-bar-container {
+            padding: 0.5rem 1rem; background-color: var(--bg-color);
+            position: sticky;
+            top: 82px; /* Adjust based on combined height of ticker and header */
+            z-index: 998; border-bottom: 1px solid #ddd;
+            transition: background-color 0.3s, border-bottom 0.3s;
+        }
+        #news-app-wrapper.dark-mode #search-bar-container { border-bottom: 1px solid #444; }
+
+        #search-input {
+            width: 100%; padding: 0.7rem 1.2rem; border-radius: 25px;
+            border: 1px solid #ccc; font-size: 1rem; font-family: var(--font-family);
+            background-color: var(--card-bg-color); color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+        #search-input:focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 211, 47, 47), 0.3); /* RGB needed for alpha */
+        }
+        #news-app-wrapper.dark-mode #search-input { border-color: #555; }
+        #news-app-wrapper.dark-mode #search-input:focus {
+            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb-dark, 211, 47, 47), 0.4);
+        }
+
+
+        /* Category Navigation */
+        #categories {
+            background-color: var(--card-bg-color); padding: 0.8rem 0.5rem;
+            overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 137px; /* Adjust based on combined height of ticker, header, and search */
+            z-index: 999; display: flex; flex-wrap: wrap; justify-content: center;
+            transition: background-color 0.3s, border-bottom 0.3s;
+        }
+        #news-app-wrapper.dark-mode #categories { border-bottom: 1px solid #444; }
+
+        .category-btn {
+            background-color: transparent; color: var(--primary-color);
+            border: 2px solid var(--primary-color); padding: 0.5rem 1.3rem;
+            margin: 0.4rem; border-radius: 25px; cursor: pointer;
+            font-size: 0.9rem; font-weight: 600;
+            transition: all 0.3s ease; white-space: nowrap; flex-shrink: 0;
+        }
+        .category-btn:hover, .category-btn:focus {
+            background-color: var(--primary-color); color: white;
+            transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .category-btn.active {
+            background-color: var(--primary-color); color: white;
+            font-weight: 700; box-shadow: 0 4px 12px rgba(var(--primary-color-rgb, 211, 47, 47), 0.3);
+        }
+
+        /* News Container & Saved Articles View */
+        #news-container, #saved-articles-container {
+            padding: 1.8rem 1.2rem; display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+            gap: 2rem; max-width: 1400px; margin: 1.2rem auto;
+        }
+        #saved-articles-container { display: none; /* Hidden by default */ }
+
+        /* News Card */
+        .news-card {
+            background-color: var(--card-bg-color); border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow); overflow: hidden; display: flex; flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s;
+            opacity: 0; transform: translateY(25px); animation: card-entry 0.6s forwards;
+        }
+        @keyframes card-entry { to { opacity: 1; transform: translateY(0); } }
+        .news-card:nth-child(2n) { animation-delay: 0.07s; }
+        .news-card:nth-child(3n) { animation-delay: 0.14s; }
+        .news-card:nth-child(4n) { animation-delay: 0.21s; }
+
+        .news-card:hover { transform: translateY(-8px); box-shadow: var(--card-hover-shadow); }
+        .news-image-container { width: 100%; height: 230px; overflow: hidden; background-color: #e0e0e0; }
+        #news-app-wrapper.dark-mode .news-image-container { background-color: #3a3a3a; }
+        .news-image {
+            width: 100%; height: 100%; object-fit: cover;
+            border-bottom: 1px solid #eee; transition: transform 0.4s ease;
+        }
+        .news-card:hover .news-image { transform: scale(1.08); }
+        #news-app-wrapper.dark-mode .news-image { border-bottom: 1px solid #444; }
+
+        .news-content { padding: 1.4rem; display: flex; flex-direction: column; flex-grow: 1; }
+        .news-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.7rem; color: var(--text-color); transition: color 0.3s; }
+        .news-meta {
+            font-size: 0.85rem; color: #616161; margin-bottom: 0.9rem;
+            display: flex; justify-content: space-between; flex-wrap: wrap;
+        }
+        #news-app-wrapper.dark-mode .news-meta { color: #bdbdbd; }
+        .news-source { font-weight: 600; margin-right: 10px; }
+        .news-description {
+            font-size: 0.98rem; color: #424242; flex-grow: 1; margin-bottom: 1.3rem;
+            display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
+            overflow: hidden; text-overflow: ellipsis; transition: color 0.3s;
+        }
+        #news-app-wrapper.dark-mode .news-description { color: #cfcfcf; }
+
+        .card-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+        .read-more-btn {
+            background: linear-gradient(to right, var(--secondary-color), var(--primary-color));
+            color: white; padding: 0.65rem 1.3rem; text-decoration: none;
+            border-radius: 25px; font-size: 0.9rem; font-weight: 600; text-align: center;
+            transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .read-more-btn:hover, .read-more-btn:focus {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 4px 10px rgba(var(--primary-color-rgb, 211, 47, 47), 0.3);
+        }
+        .save-article-btn {
+            background: none; border: 2px solid var(--primary-color); color: var(--primary-color);
+            padding: 0.5rem; border-radius: 50%; cursor: pointer;
+            font-size: 1.1rem; width: 40px; height: 40px; display: flex;
+            align-items: center; justify-content: center; transition: all 0.3s ease;
+        }
+        .save-article-btn.saved { background-color: var(--primary-color); color: white; }
+        .save-article-btn:hover { background-color: var(--secondary-color); color: white; border-color: var(--secondary-color); transform: scale(1.1); }
+        .save-article-btn.saved:hover { background-color: var(--gradient-end); border-color: var(--gradient-end); }
+
+
+        /* Skeleton Loader */
+        .skeleton-card {
+            background-color: var(--card-bg-color); border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow); overflow: hidden; padding: 1.4rem;
+        }
+        .skeleton { background-color: #e0e0e0; border-radius: 4px; margin-bottom: 10px; animation: pulse 1.5s infinite ease-in-out; }
+        #news-app-wrapper.dark-mode .skeleton { background-color: #424242; }
+        .skeleton.image { width: 100%; height: 200px; margin-bottom: 15px; }
+        .skeleton.title { width: 70%; height: 20px; }
+        .skeleton.text { width: 100%; height: 15px; }
+        .skeleton.text-short { width: 50%; height: 15px; }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+        /* Load More Button */
+        #load-more-btn {
+            display: block; margin: 2rem auto; padding: 0.8rem 2rem;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white; border: none; border-radius: 30px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+        #load-more-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(var(--primary-color-rgb, 211, 47, 47), 0.3);
+        }
+        #load-more-btn:disabled { background: #aaa; cursor: not-allowed; opacity: 0.7; }
+
+
+        /* Messages & Attribution */
+        .message { text-align: center; font-size: 1.2rem; color: #555; padding: 2rem; grid-column: 1 / -1;}
+        #news-app-wrapper.dark-mode .message { color: #bbb; }
+        .api-attribution { text-align:center; font-size:0.85rem; color:#777; padding:0.5rem 1rem 1.5rem; grid-column:1/-1;}
+        #news-app-wrapper.dark-mode .api-attribution { color: #aaa; }
+        .api-attribution a { color: var(--primary-color); text-decoration: none; }
+        .api-attribution a:hover { text-decoration: underline; }
+
+        /* Back to Top button needs to be fixed relative to viewport, not wrapper */
+        #back-to-top {
+            position: fixed; /* Keep this fixed to viewport */
+            bottom: 20px; right: 20px; background-color: var(--primary-color);
+            color: white; border: none; border-radius: 50%; width: 50px; height: 50px;
+            font-size: 1.5rem; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none; place-items: center; transition: all 0.3s; z-index: 1005; /* Higher z-index */
+        }
+        #back-to-top:hover { background-color: var(--secondary-color); transform: scale(1.1); }
+
+        /* Responsive adjustments */
+        /* The sticky top values might need slight adjustments based on actual rendered heights */
+        @media (max-width: 768px) {
+            /* #news-app-wrapper { padding-top: 115px; } /* Removed */
+            header { top: 25px; } /* Sticky relative to ticker */
+            header h1 { font-size: 1.4rem; }
+            #search-bar-container { top: 72px; } /* Approx: 25px (ticker) + 47px (header) */
+            #categories { top: 122px; justify-content: flex-start; flex-wrap: nowrap; } /* Approx: 72px + 50px (search) */
+            .news-card { border-radius: 12px; }
+            .news-title { font-size: 1.2rem; }
+            .news-description { -webkit-line-clamp: 3; }
+            #news-ticker-container { font-size: 0.8rem; }
+            header { padding: 0.6rem 0.8rem; }
+            #view-toggle-btn { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+            #theme-toggle { font-size: 1.3rem; }
+        }
+        @media (max-width: 480px) {
+            /* #news-app-wrapper { padding-top: 105px; } /* Removed */
+            header { top: 22px; }
+            header h1 { font-size: 1.2rem; }
+            #search-bar-container { top: 62px; } /* Approx: 22px + 40px */
+            #categories { top: 107px; } /* Approx: 62px + 45px */
+            #news-container, #saved-articles-container { padding: 1rem 0.7rem; gap: 1.2rem; grid-template-columns: 1fr; }
+            .category-btn { padding: 0.4rem 1rem; font-size: 0.85rem; margin: 0.3rem; }
+            .read-more-btn { padding: 0.5rem 1.1rem; }
+            .save-article-btn { width: 36px; height: 36px; font-size: 1rem; }
+            .news-image-container { height: 200px; }
+            #back-to-top { width: 45px; height: 45px; font-size: 1.3rem; bottom: 15px; right: 15px;}
+            #news-ticker-container { top:0; padding: 0.2rem 0; }
+            #news-ticker span { margin-right: 30px; }
+        }
+    </style>
+</head>
+<body> <!-- This body tag will be part of the gadget, not the main page body -->
+
+    <div id="news-app-wrapper"> <!-- Main wrapper for the app -->
+        <div id="news-ticker-container">
+            <div id="news-ticker">
+                <!-- Ticker items will be loaded here -->
+            </div>
+        </div>
+
+        <header>
+            <h1>अनंत समाचार</h1>
+            <div class="header-controls">
+                <button id="view-toggle-btn">सहेजे गए देखें</button>
+                <button id="theme-toggle" title="Toggle theme">☀️</button>
+            </div>
+        </header>
+
+        <div id="search-bar-container">
+            <input type="text" id="search-input" placeholder="वर्तमान समाचार खोजें...">
+        </div>
+
+        <nav id="categories">
+            <!-- Category buttons -->
+        </nav>
+
+        <main id="news-container">
+            <!-- News articles or skeletons -->
+        </main>
+        <div id="saved-articles-container">
+            <!-- Saved articles -->
+        </div>
+
+        <button id="load-more-btn" style="display:none;">और लोड करें</button>
+        <div id="api-attribution-container"></div>
+
+    </div> <!-- End of #news-app-wrapper -->
+
+    <!-- Back to Top button is outside the wrapper to ensure viewport positioning -->
+    <button id="back-to-top" title="ऊपर जाएं">↑</button>
+
+    <script type="text/javascript">
+    //<![CDATA[
+        // DOM Elements
+        const newsAppWrapper = document.getElementById('news-app-wrapper'); // Get the wrapper
+        const newsContainer = document.getElementById('news-container');
+        const savedArticlesContainer = document.getElementById('saved-articles-container');
+        const categoriesContainer = document.getElementById('categories');
+        const attributionContainer = document.getElementById('api-attribution-container');
+        const themeToggleButton = document.getElementById('theme-toggle');
+        const backToTopButton = document.getElementById('back-to-top');
+        const searchInput = document.getElementById('search-input');
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const newsTicker = document.getElementById('news-ticker');
+        const viewToggleButton = document.getElementById('view-toggle-btn');
+
+        // --- API Configuration (GNews.io by default) ---
+        const API_CONFIG_GNEWS = {
+            type: 'gnews',
+            apiKey: '152b086bd7a1b130e1e6dd4496ab4536', // YOUR GNEWS KEY - WARNING: This will be visible in your blog's source code.
+            baseUrl: 'https://gnews.io/api/v4/top-headlines?lang=hi&country=in',
+            categories: {
+                'सभी': 'general',
+                'विश्व': 'world', 'राष्ट्रीय': 'nation', 'व्यापार': 'business',
+                'प्रौद्योगिकी': 'technology', 'मनोरंजन': 'entertainment', 'खेल': 'sports',
+                'विज्ञान': 'science', 'स्वास्थ्य': 'health'
+            },
+            attribution: '<p class="api-attribution">समाचार <a href="https://gnews.io/" target="_blank" rel="noopener">GNews.io</a> द्वारा संचालित</p>'
+        };
+        const API_CONFIG = API_CONFIG_GNEWS;
+
+        // App State
+        let currentCategoryKey = API_CONFIG.categories['सभी'];
+        let currentPage = 1;
+        let isLoading = false;
+        let hasMoreNews = true;
+        let currentView = 'live';
+        let allFetchedLiveArticles = [];
+
+        // --- Theme Management ---
+        function applyTheme(theme) {
+            const primaryColorRGB = theme === 'dark' ? '211, 47, 47' : '211, 47, 47';
+            document.documentElement.style.setProperty('--primary-color-rgb', primaryColorRGB);
+            document.documentElement.style.setProperty('--primary-color-rgb-dark', '211, 47, 47');
+
+            // Apply dark mode to the wrapper instead of document.body
+            if (theme === 'dark') {
+                newsAppWrapper.classList.add('dark-mode');
+                themeToggleButton.innerHTML = '🌙';
+            } else {
+                newsAppWrapper.classList.remove('dark-mode');
+                themeToggleButton.innerHTML = '☀️';
+            }
+        }
+        themeToggleButton.addEventListener('click', () => {
+            const newTheme = newsAppWrapper.classList.contains('dark-mode') ? 'light' : 'dark';
+            localStorage.setItem('newsAppTheme', newTheme);
+            applyTheme(newTheme);
+        });
+        // Check for system preference only if no theme is saved
+        let savedTheme = localStorage.getItem('newsAppTheme');
+        if (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            savedTheme = 'dark';
+        } else if (!savedTheme) {
+            savedTheme = 'light';
+        }
+        applyTheme(savedTheme);
+
+
+        // --- Skeleton Loaders ---
+        function createSkeletonCard() {
+            return `
+                <div class="skeleton-card">
+                    <div class="skeleton image"></div>
+                    <div class="skeleton title"></div>
+                    <div class="skeleton text"></div>
+                    <div class="skeleton text"></div>
+                    <div class="skeleton text-short"></div>
+                </div>
+            `;
+        }
+        function showSkeletonLoaders(count = 6) {
+            newsContainer.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                newsContainer.insertAdjacentHTML('beforeend', createSkeletonCard());
+            }
+            loadMoreBtn.style.display = 'none';
+            attributionContainer.innerHTML = '';
+        }
+
+        // --- View Toggle (Live/Saved) ---
+        viewToggleButton.addEventListener('click', () => {
+            if (currentView === 'live') {
+                currentView = 'saved';
+                viewToggleButton.textContent = 'लाइव समाचार देखें';
+                newsContainer.style.display = 'none';
+                categoriesContainer.style.display = 'none'; // Hide categories in saved view
+                loadMoreBtn.style.display = 'none';
+                searchInput.placeholder = "सहेजे गए लेख खोजें...";
+                attributionContainer.innerHTML = '';
+                displaySavedArticles();
+                savedArticlesContainer.style.display = 'grid';
+            } else {
+                currentView = 'live';
+                viewToggleButton.textContent = 'सहेजे गए देखें';
+                savedArticlesContainer.style.display = 'none';
+                newsContainer.style.display = 'grid';
+                categoriesContainer.style.display = 'flex'; // Show categories
+                searchInput.placeholder = "वर्तमान समाचार खोजें...";
+                if (allFetchedLiveArticles.length > 0) {
+                     displayNews(allFetchedLiveArticles, false);
+                     if (hasMoreNews && allFetchedLiveArticles.length > 0) loadMoreBtn.style.display = 'block';
+                } else {
+                     fetchNews(currentCategoryKey, true);
+                }
+            }
+            searchInput.value = '';
+        });
+
+
+        // --- Saved Articles Management (localStorage) ---
+        function getSavedArticles() {
+            return JSON.parse(localStorage.getItem('savedHindiNews')) || [];
+        }
+        function saveArticleToStorage(article) {
+            const saved = getSavedArticles();
+            if (!saved.find(a => a.url === article.url)) {
+                saved.push(article);
+                localStorage.setItem('savedHindiNews', JSON.stringify(saved));
+            }
+        }
+        function removeArticleFromStorage(articleUrl) {
+            let saved = getSavedArticles();
+            saved = saved.filter(a => a.url !== articleUrl);
+            localStorage.setItem('savedHindiNews', JSON.stringify(saved));
+        }
+        function isArticleSaved(articleUrl) {
+            return getSavedArticles().some(a => a.url === articleUrl);
+        }
+
+        function displaySavedArticles() {
+            const articles = getSavedArticles();
+            savedArticlesContainer.innerHTML = '';
+            if (articles.length === 0) {
+                savedArticlesContainer.innerHTML = '<p class="message">कोई सहेजा गया लेख नहीं।</p>';
+                return;
+            }
+            articles.forEach(article => {
+                const cardData = {
+                    title: article.title,
+                    description: article.description,
+                    image: article.image,
+                    url: article.url,
+                    source: article.source,
+                    publishedAt: article.publishedAt,
+                    isSavedView: true
+                };
+                savedArticlesContainer.insertAdjacentHTML('beforeend', createNewsCard(cardData));
+            });
+        }
+
+
+        // --- Utility & Card Creation ---
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            try {
+                const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                return new Date(dateString).toLocaleDateString('hi-IN', options);
+            } catch (e) { return dateString.split('T')[0]; }
+        }
+
+        function createNewsCard(articleData) {
+            const { title, description, image, url, source, publishedAt, isSavedView = false } = articleData;
+            if (!title || !url) return '';
+
+            const shortDesc = (description || 'कोई विवरण उपलब्ध नहीं है।').substring(0, 150) + "...";
+            const sourceName = source ? (source.name || source) : 'अज्ञात स्रोत';
+            const saved = !isSavedView && isArticleSaved(url);
+
+            const searchableText = `${title} ${description || ''} ${sourceName}`.toLowerCase();
+
+            return `
+                <div class="news-card" data-url="${url}" data-searchable-text="${searchableText}" data-title="${title}" data-description="${description || ''}" data-image="${image || ''}" data-source-name="${sourceName}" data-published-at="${publishedAt || ''}">
+                    ${image ? `<div class="news-image-container"><img src="${image}" alt="${title}" class="news-image" loading="lazy" onerror="this.parentElement.style.display='none';"></div>` : ''}
+                    <div class="news-content">
+                        <h2 class="news-title">${title}</h2>
+                        <div class="news-meta">
+                            <span class="news-source">${sourceName}</span>
+                            <span class="news-date">${formatDate(publishedAt)}</span>
+                        </div>
+                        <p class="news-description">${shortDesc}</p>
+                        <div class="card-actions">
+                            <a href="${url}" target="_blank" rel="noopener noreferrer" class="read-more-btn">और पढ़ें →</a>
+                            <button class="save-article-btn ${saved ? 'saved' : ''}" title="${saved ? 'सहेजा गया हटाएं' : 'लेख सहेजें'}">
+                                ${saved ? '✓' : '+'}
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+
+        // --- Display News (Live View) ---
+        function displayNews(articles, isAppending = false) {
+            if (!isAppending) {
+                newsContainer.innerHTML = '';
+                allFetchedLiveArticles = [];
+            }
+
+            if (!articles || articles.length === 0) {
+                if (!isAppending) newsContainer.innerHTML = `<p class="message">इस श्रेणी के लिए कोई समाचार नहीं मिला।</p>`;
+                hasMoreNews = false;
+                loadMoreBtn.style.display = 'none';
+                return;
+            }
+            
+            allFetchedLiveArticles = allFetchedLiveArticles.concat(articles);
+
+            articles.forEach(article => {
+                const cardData = {
+                    title: article.title,
+                    description: article.description,
+                    image: article.image,
+                    url: article.url,
+                    source: article.source,
+                    publishedAt: article.publishedAt
+                };
+                newsContainer.insertAdjacentHTML('beforeend', createNewsCard(cardData));
+            });
+
+            hasMoreNews = articles.length >= 10;
+            loadMoreBtn.style.display = hasMoreNews ? 'block' : 'none';
+            loadMoreBtn.disabled = false;
+
+            if (API_CONFIG.attribution && !isAppending) {
+                attributionContainer.innerHTML = API_CONFIG.attribution;
+            }
+        }
+
+        // --- Fetch News (Main Function) ---
+        async function fetchNews(categoryKey = currentCategoryKey, isNewCategory = false) {
+            if (isLoading) return;
+            isLoading = true;
+
+            if (isNewCategory) {
+                currentPage = 1;
+                hasMoreNews = true;
+                allFetchedLiveArticles = [];
+                showSkeletonLoaders();
+            } else {
+                loadMoreBtn.disabled = true;
+                loadMoreBtn.textContent = 'लोड हो रहा है...';
+            }
+
+            let url = `${API_CONFIG.baseUrl}&topic=${categoryKey}&max=10&page=${currentPage}&token=${API_CONFIG.apiKey}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.errors ? errorData.errors.join(', ') : `HTTP Error: ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data && Array.isArray(data.articles)) {
+                    displayNews(data.articles, !isNewCategory);
+                    currentPage++;
+                } else {
+                    throw new Error("API से अमान्य प्रतिक्रिया।");
+                }
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                if (isNewCategory) {
+                    newsContainer.innerHTML = `<p class="message error-message">समाचार लोड करने में विफल: ${error.message}</p>`;
+                }
+                hasMoreNews = false;
+                loadMoreBtn.style.display = 'none';
+            } finally {
+                isLoading = false;
+                if (!isNewCategory) {
+                    loadMoreBtn.disabled = false;
+                    loadMoreBtn.textContent = 'और लोड करें';
+                    if(!hasMoreNews) loadMoreBtn.style.display = 'none';
+                }
+            }
+        }
+
+        async function fetchTickerNews() {
+            if (!API_CONFIG.apiKey) return;
+            const tickerUrl = `${API_CONFIG.baseUrl}&topic=general&max=5&token=${API_CONFIG.apiKey}`;
+            try {
+                const response = await fetch(tickerUrl);
+                const data = await response.json();
+                if (data && data.articles && data.articles.length > 0) {
+                    newsTicker.innerHTML = data.articles
+                        .map(article => `<span><a href="${article.url}" target="_blank" rel="noopener noreferrer">${article.title}</a></span>`)
+                        .join('');
+                }
+            } catch (error) {
+                console.warn("Ticker news fetch failed:", error);
+                newsTicker.innerHTML = '<span>नवीनतम समाचार लोड करने में असमर्थ।</span>';
+            }
+        }
+
+
+        // --- Category Management ---
+        function setupCategories() {
+            categoriesContainer.innerHTML = '';
+            Object.entries(API_CONFIG.categories).forEach(([displayName, categoryKey]) => {
+                const button = document.createElement('button');
+                button.className = 'category-btn';
+                button.textContent = displayName;
+                if (categoryKey === currentCategoryKey) button.classList.add('active');
+
+                button.addEventListener('click', () => {
+                    if (currentView !== 'live') {
+                        viewToggleButton.click();
+                    }
+                    document.querySelectorAll('#categories .category-btn.active').forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+                    currentCategoryKey = categoryKey;
+                    fetchNews(currentCategoryKey, true);
+                    searchInput.value = '';
+                });
+                categoriesContainer.appendChild(button);
+            });
+        }
+
+        // --- Event Listeners ---
+        loadMoreBtn.addEventListener('click', () => fetchNews(currentCategoryKey, false));
+
+        // Event delegation for save buttons (on newsAppWrapper for better containment)
+        newsAppWrapper.addEventListener('click', function(event) {
+            if (event.target.classList.contains('save-article-btn')) {
+                const card = event.target.closest('.news-card');
+                if (!card) return;
+
+                const articleData = {
+                    title: card.dataset.title,
+                    description: card.dataset.description,
+                    image: card.dataset.image,
+                    url: card.dataset.url,
+                    source: { name: card.dataset.sourceName },
+                    publishedAt: card.dataset.publishedAt
+                };
+
+                if (event.target.classList.contains('saved')) {
+                    removeArticleFromStorage(articleData.url);
+                    event.target.classList.remove('saved');
+                    event.target.innerHTML = '+';
+                    event.target.title = 'लेख सहेजें';
+                    if (currentView === 'saved') displaySavedArticles();
+                } else {
+                    saveArticleToStorage(articleData);
+                    event.target.classList.add('saved');
+                    event.target.innerHTML = '✓';
+                    event.target.title = 'सहेजा गया हटाएं';
+                }
+            }
+        });
+
+
+        // Search Functionality
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const containerToSearch = currentView === 'live' ? newsContainer : savedArticlesContainer;
+            const cards = containerToSearch.querySelectorAll('.news-card');
+            let foundItems = 0;
+
+            cards.forEach(card => {
+                const searchableText = card.dataset.searchableText || '';
+                if (searchableText.includes(searchTerm)) {
+                    card.style.display = 'flex';
+                    foundItems++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            const messageElement = containerToSearch.querySelector('.message');
+            if (messageElement) messageElement.remove();
+
+            if (foundItems === 0 && searchTerm) {
+                const noResultsMsg = document.createElement('p');
+                noResultsMsg.className = 'message';
+                noResultsMsg.textContent = `"${searchTerm}" के लिए कोई परिणाम नहीं मिला।`;
+                containerToSearch.appendChild(noResultsMsg);
+                if (currentView === 'live') loadMoreBtn.style.display = 'none';
+            } else if (currentView === 'live' && allFetchedLiveArticles.length > 0 && !searchTerm) {
+                if (hasMoreNews) loadMoreBtn.style.display = 'block';
+            }
+
+            if (currentView === 'live' && API_CONFIG.attribution && (foundItems > 0 || !searchTerm)) {
+                 attributionContainer.innerHTML = API_CONFIG.attribution;
+            } else if (currentView === 'live') { // Clear attribution if search is active and yields no results
+                 attributionContainer.innerHTML = '';
+            }
+        });
+
+        // Back to Top
+        // Note: Scrolling is on the main window, not necessarily the newsAppWrapper if it's not full height
+        window.addEventListener('scroll', () => {
+            if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+                backToTopButton.style.display = "grid"; backToTopButton.style.opacity = "1";
+            } else {
+                backToTopButton.style.opacity = "0";
+                setTimeout(() => { if (!(document.body.scrollTop > 200 || document.documentElement.scrollTop > 200)) backToTopButton.style.display = "none"; }, 300);
+            }
+        });
+        backToTopButton.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+        // --- Initial Load ---
+        // DOMContentLoaded is not strictly necessary here as script is at the end, but good practice
+        document.addEventListener('DOMContentLoaded', () => {
+            setupCategories();
+            fetchTickerNews();
+            fetchNews(currentCategoryKey, true);
+        });
+
+    //]]>
+    </script>
+
+    <!-- The ad script from your original code -->
+    <!-- This might also need adjustment based on how Profitableratecpm expects to be integrated -->
+    <script async="async" data-cfasync="false" src="//pl26629861.profitableratecpm.com/12a2afc70a88c65a85d8ee4fd401b8a4/invoke.js"></script>
+    <div id="container-12a2afc70a88c65a85d8ee4fd401b8a4"></div>
+
+</body>
+</html>
